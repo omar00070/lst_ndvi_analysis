@@ -1,0 +1,6 @@
+venv/
+*.dbf
+data/
+data.rar
+.ipynb_checkpoints
+**xlsx
