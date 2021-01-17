@@ -6,7 +6,15 @@ import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression as LR
-import sys
+import random
+import json
+
+def load_configurations(configuration_file):
+    with open(configuration_file) as file:
+        json_file = json.load(file)
+        percentage = json_file['percentage']
+        data_groups_explanation = json_file['data_groups_explanation']
+        return percentage, data_groups_explanation
 
 
 def load_data(first_path, second_path):
@@ -75,8 +83,11 @@ def _drop_unmatched_rows(df, drop_ids):
 
 def get_ndvi_lst_variation_df():
 
-    first_path = sys.argv[1]
-    second_path = sys.argv[2]
+    first_path = input("please input the ndvi lst file path: ")
+    second_path = input("please input the ndvi ndvi file path: ")
+
+    print('starting the processing....')
+
 
     # load bot data for ndvi ndvi and for ndvi lst
     df_ndvi_lst, df_ndvi_ndvi = load_data(first_path, second_path)
@@ -115,9 +126,9 @@ def _compute_first_percentage_of_groups(df_groups, percentage=0.25):
         first_25_percent = int(group_populations[group] * percentage)
         df_groups[group] = df_groups[group][:first_25_percent]
 
-def get_cleaned_data(data_groups_explanation, df_ndvi_lst_variation):
+def get_cleaned_data(data_groups_explanation, df_ndvi_lst_variation, percentage=0.25):
     df_groups = _get_data_groups(df_ndvi_lst_variation, data_groups_explanation, 'grid_code')
-    _compute_first_percentage_of_groups(df_groups, 0.25)
+    _compute_first_percentage_of_groups(df_groups, percentage)
     cleaned_data = pd.DataFrame()
     for group in df_groups:
         cleaned_data = cleaned_data.append(df_groups[group])
@@ -125,20 +136,21 @@ def get_cleaned_data(data_groups_explanation, df_ndvi_lst_variation):
 
 
 def main():
-    print('starting the processing....')
     ndvi_lst_variation_df = get_ndvi_lst_variation_df()
 
-    data_groups_explanation=[{'name': 'group1', 'from': 0, 'to': 2000}, 
-                        {'name': 'group2', 'from': 2000, 'to': 5000}, 
-                        {'name':'group3', 'from': 5000, 'to': 0}]
+    print('loading configurations...')
+    percentage, data_Group_explanation = load_configurations('configuration.json')
 
     print('generating cleaned data....')
-    df_cleaned_data = get_cleaned_data(data_groups_explanation, ndvi_lst_variation_df)
+    df_cleaned_data = get_cleaned_data(data_Group_explanation, ndvi_lst_variation_df, percentage)
 
     print('exporting cleaned data to an excel sheet...')
-    df_cleaned_data.to_excel("cleaned_data_01.xlsx") 
+    file_name = f'cleaned_data_{random.randint(0, 10000000)}.xlsx'
+    df_cleaned_data.to_excel(file_name) 
     print('done successfully.')
+    
+    plt.scatter(df_cleaned_data['grid_code'], df_cleaned_data['grid_code_'])
+    plt.savefig('filename.svg')
 
 if __name__ == '__main__':
     main()
-    
